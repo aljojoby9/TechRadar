@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
+import { useRouter } from 'next/navigation'  // Updated import
 
 export default function SignInForm() {
   const [email, setEmail] = useState("")
@@ -18,6 +19,7 @@ export default function SignInForm() {
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -51,6 +53,7 @@ export default function SignInForm() {
       setSuccess(true)
       setEmail('')
       setPassword('')
+      router.push('/dashboard')  // Add this line here
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
     } finally {
@@ -121,4 +124,8 @@ export default function SignInForm() {
     </motion.div>
   )
 }
+// Remove this code from outside the component
+// if (success) {
+//   router.push('/dashboard');
+// }
 

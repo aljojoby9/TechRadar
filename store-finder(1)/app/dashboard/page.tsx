@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import type { Store } from "@/lib/types"
 import { fetchStores } from "@/lib/api"
 import { Building, Package, TrendingUp } from "lucide-react"
+import AuthCheck from '@/components/AuthCheck'
+import LoginRedirect from '@/components/LoginRedirect'
+import Map from '@/components/Map'
 
 async function getStores(): Promise<Store[]> {
   return fetchStores()
