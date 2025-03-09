@@ -8,28 +8,38 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  try {
+    const supabase = await createClient()
+    const { data, error } = await supabase.auth.getSession()
+    
+    if (!data?.session || error) {
+      redirect('/auth/sign-in')
+    }
 
-  const { data: { session }, error } = await supabase.auth.getSession()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-  if (!session || error) {
+    // Check if user exists
+    if (!user) {
+      redirect('/auth/sign-in')
+    }
+
+    // Check if user has store_owner role
+    const userRole = user.user_metadata?.role || user.user_metadata?.user_type
+    if (userRole !== 'store_owner') {
+      // Redirect non-store owners to the home page
+      redirect('/')
+    }
+
+    return (
+      <div className="flex min-h-screen">
+        <DashboardNav user={user} />
+        <main className="flex-1 p-8">{children}</main>
+      </div>
+    )
+  } catch (error) {
+    console.error('Authentication error:', error)
     redirect('/auth/sign-in')
   }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Check if user is a store owner
-  if (user?.user_metadata?.role !== 'store_owner') {
-    redirect('/')
-  }
-
-  return (
-    <div className="flex min-h-screen">
-      <DashboardNav user={user} />
-      <main className="flex-1 p-8">{children}</main>
-    </div>
-  )
-} 
+}

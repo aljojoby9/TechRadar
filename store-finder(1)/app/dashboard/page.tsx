@@ -15,8 +15,7 @@ async function getStores(): Promise<Store[]> {
 }
 
 export default async function DashboardPage() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   // Fetch store statistics
   const { data: stores } = await supabase

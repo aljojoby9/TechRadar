@@ -8,17 +8,17 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
+    const supabase = await createClient()
     
     // Exchange the code for a session
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     
     if (!error) {
-      return NextResponse.redirect(`${requestUrl.origin}/`)
+      // Redirect to dashboard instead of homepage
+      return NextResponse.redirect(`${requestUrl.origin}/dashboard`)
     }
   }
 
-  // Return the user to the homepage if something goes wrong
+  // Return the user to the sign-in page if something goes wrong
   return NextResponse.redirect(`${requestUrl.origin}/auth/sign-in`)
 } 

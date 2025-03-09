@@ -5,8 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 
 export default async function StoresPage() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const { data: stores } = await supabase
     .from('stores')

@@ -5,9 +5,9 @@ import { mockStores } from '@/lib/api' // Temporary import for mock data
 
 export async function GET() {
   try {
-    const cookieStore = cookies()
-    const supabase = createClient(cookieStore)
-
+    // Create Supabase client
+    const supabase = await createClient();
+    
     // First try to get stores from Supabase
     const { data: stores, error } = await supabase
       .from('stores')
@@ -25,4 +25,4 @@ export async function GET() {
     // Return mock data as fallback
     return NextResponse.json(mockStores)
   }
-} 
+}

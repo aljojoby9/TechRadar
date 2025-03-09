@@ -16,11 +16,18 @@ async function getStoreProducts(id: string): Promise<Product[]> {
   return fetchStoreProducts(id)
 }
 
-export default async function StorePage({ params }: { params: { id: string } }) {
-  const store = await getStore(params.id)
+interface StorePageProps {
+  params: Promise<{ id: string }>
+}
 
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+export default async function StorePage({ params }: StorePageProps) {
+  // Await params before accessing its properties
+  const resolvedParams = await params;
+  const storeId = resolvedParams.id;
+  
+  const store = await getStore(storeId)
+
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -75,7 +82,7 @@ export default async function StorePage({ params }: { params: { id: string } }) 
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-xl font-semibold mb-6">Available Inventory</h2>
           <Suspense fallback={<div className="h-96 flex items-center justify-center">Loading inventory...</div>}>
-            <ProductInventoryList storeId={params.id} />
+            <ProductInventoryList storeId={storeId} />
           </Suspense>
         </div>
       </div>

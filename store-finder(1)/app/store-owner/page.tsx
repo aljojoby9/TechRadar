@@ -1,13 +1,14 @@
 // app/store-owner/page.tsx
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { useRouter } from "next/navigation"
 
 export default function StoreOwnerPage() {
   const router = useRouter()
   const supabase = createClient()
+  const [loading, setLoading] = useState(true)
 
   const [storeName, setStoreName] = useState("")
   const [storeAddress, setStoreAddress] = useState("")
@@ -15,6 +16,25 @@ export default function StoreOwnerPage() {
   const [itemName, setItemName] = useState("")
   const [itemSKU, setItemSKU] = useState("")
   const [itemStock, setItemStock] = useState(0)
+
+  // Check user role on component mount
+  useEffect(() => {
+    async function checkUserRole() {
+      setLoading(true)
+      const { data } = await supabase.auth.getUser()
+      const userRole = data.user?.user_metadata?.role || data.user?.user_metadata?.user_type
+      
+      if (!data.user || userRole !== 'store_owner') {
+        // Redirect non-store owners to home page
+        router.push('/')
+        return
+      }
+      
+      setLoading(false)
+    }
+    
+    checkUserRole()
+  }, [router, supabase.auth])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,6 +74,10 @@ export default function StoreOwnerPage() {
 
     // Redirect to home or success page
     router.push("/")
+  }
+
+  if (loading) {
+    return <div className="min-h-screen bg-gray-50 p-8">Loading...</div>
   }
 
   return (

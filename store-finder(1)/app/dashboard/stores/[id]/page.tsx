@@ -16,9 +16,17 @@ async function getStoreProducts(id: string): Promise<Product[]> {
   return fetchStoreProducts(id)
 }
 
-export default async function StoreInventoryPage({ params }: { params: { id: string } }) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+interface StoreInventoryPageProps {
+  params: Promise<{ id: string }>
+}
+
+export default async function StoreInventoryPage({ params }: StoreInventoryPageProps) {
+  // Await params before accessing its properties
+  const resolvedParams = await params;
+  const storeId = resolvedParams.id;
+  
+  const supabase = await createClient()
+  
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -33,8 +41,8 @@ export default async function StoreInventoryPage({ params }: { params: { id: str
     redirect("/")
   }
 
-  const store = await getStore(params.id)
-  const products = await getStoreProducts(params.id)
+  const store = await getStore(storeId)
+  const products = await getStoreProducts(storeId)
 
   return (
     <main className="min-h-screen bg-gray-50">

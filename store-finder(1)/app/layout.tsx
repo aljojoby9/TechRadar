@@ -11,6 +11,7 @@ export const metadata: Metadata = {
   description: "Find stores near you",
 }
 
+// Add suppressHydrationWarning to the body element
 export default function RootLayout({
   children,
 }: {
@@ -18,8 +19,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Providers>{children}</Providers>
+      <body className="__className_d65c78" suppressHydrationWarning={true}>
+        {children}
       </body>
     </html>
   )

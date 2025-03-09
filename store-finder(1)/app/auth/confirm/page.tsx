@@ -14,7 +14,7 @@ export default async function ConfirmPage({
   searchParams: { token_hash?: string; type?: string }
 }) {
   const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const { token_hash, type } = searchParams
 

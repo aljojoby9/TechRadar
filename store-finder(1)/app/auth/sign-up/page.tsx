@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 
 export default async function SignUpPage() {
   const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = await createClient()
 
   const {
     data: { session },
