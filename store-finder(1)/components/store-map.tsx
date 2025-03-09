@@ -17,7 +17,7 @@ export default function StoreMap() {
 
   useEffect(() => {
     // Get user's location
-    if (navigator.geolocation) {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserLocation({
@@ -26,10 +26,18 @@ export default function StoreMap() {
           })
         },
         (error) => {
-          console.error("Error getting location:", error)
+          console.error("Error getting location:", error.message || JSON.stringify(error))
           setUserLocation(defaultCenter)
+        },
+        { 
+          enableHighAccuracy: true, 
+          timeout: 5000, 
+          maximumAge: 0 
         }
       )
+    } else {
+      // Fallback for browsers that don't support geolocation
+      setUserLocation(defaultCenter)
     }
 
     // Fetch stores
@@ -67,17 +75,23 @@ export default function StoreMap() {
       maxLng: -Infinity,
     }
   )
-
+  // In the getRelativePosition function
   const getRelativePosition = (lat: number, lng: number) => {
+    // Check if bounds are valid
+    if (bounds.minLat === Infinity || bounds.maxLat === -Infinity || 
+        bounds.minLng === Infinity || bounds.maxLng === -Infinity) {
+      // Return a default position if bounds are invalid
+      return { x: 50, y: 50 };
+    }
+    
     const latRange = bounds.maxLat - bounds.minLat || 1
     const lngRange = bounds.maxLng - bounds.minLng || 1
-
+  
     return {
       x: ((lng - bounds.minLng) / lngRange) * 100,
       y: ((lat - bounds.minLat) / latRange) * 100,
     }
   }
-
   return (
     <div className="h-full relative">
       <div className="absolute top-4 left-4 z-10 bg-white p-2 rounded shadow">

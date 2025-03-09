@@ -5,13 +5,17 @@ import { updateSession } from "@/utils/supabase/middleware"
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
   
-  // Only update session for protected routes
+  // All routes that require authentication
   if (
+    // Store owner specific routes
     pathname.startsWith('/dashboard') || 
+    pathname.startsWith('/store-owner') ||
+    
+    // User routes
     pathname.startsWith('/profile') || 
-    pathname.startsWith('/admin') ||
     pathname.startsWith('/account')
   ) {
+    // updateSession will check if the user is authenticated and verify correct role access
     return await updateSession(request)
   }
   

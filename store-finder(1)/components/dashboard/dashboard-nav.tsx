@@ -1,3 +1,5 @@
+"use client"
+
 import Link from 'next/link'
 import { User } from '@supabase/supabase-js'
 import { Store, Package, MapPin, Settings, LogOut } from 'lucide-react'
@@ -12,6 +14,8 @@ export function DashboardNav({ user }: DashboardNavProps) {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
+    // Redirect to home page after sign out
+    window.location.href = '/'
   }
 
   return (
