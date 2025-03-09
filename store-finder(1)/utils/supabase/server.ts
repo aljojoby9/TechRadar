@@ -1,19 +1,41 @@
 import { createServerClient } from "@supabase/ssr"
-import type { cookies } from "next/headers"
+import { cookies } from "next/headers"
 
-export function createClient(cookieStore: ReturnType<typeof cookies>) {
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value
+export async function createClient() {
+  const cookieStore = await cookies()
+  
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value
+        },
+        set(name: string, value: string, options: any) {
+          try {
+            cookieStore.set({
+              name,
+              value,
+              ...options,
+            })
+          } catch (error) {
+            // This is fine - it can happen when set is called from a Server Component
+          }
+        },
+        remove(name: string, options: any) {
+          try {
+            cookieStore.set({
+              name,
+              value: "",
+              ...options,
+            })
+          } catch (error) {
+            // This is fine - it can happen when remove is called from a Server Component
+          }
+        },
       },
-      set(name: string, value: string, options: any) {
-        cookieStore.set({ name, value, ...options })
-      },
-      remove(name: string, options: any) {
-        cookieStore.set({ name, value: "", ...options })
-      },
-    },
-  })
+    }
+  )
 }
 

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { createClient } from "@/utils/supabase/client"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
-import { useRouter } from 'next/navigation'  // Updated import
+import { useRouter } from 'next/navigation'
 
 export default function SignInForm() {
   const [email, setEmail] = useState("")
@@ -20,6 +20,17 @@ export default function SignInForm() {
   const [loading, setLoading] = useState(false)
   const supabase = createClient()
   const router = useRouter()
+
+  // Check authentication status when component mounts
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession()
+      if (data?.session) {
+        router.push('/dashboard')
+      }
+    }
+    checkAuth()
+  }, [router, supabase.auth])
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -47,16 +58,22 @@ export default function SignInForm() {
         } else {
           setError(signInError.message)
         }
+        setLoading(false)
         return
       }
 
       setSuccess(true)
       setEmail('')
       setPassword('')
-      router.push('/dashboard')  // Add this line here
+      
+      // Set a short timeout to show the success message before redirecting
+      setTimeout(() => {
+        // Force a hard navigation to refresh auth state completely
+        window.location.href = '/dashboard'
+      }, 800)
+      
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
-    } finally {
       setLoading(false)
     }
   }
@@ -107,7 +124,7 @@ export default function SignInForm() {
           <Alert className="bg-green-50">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-600">
-              Successfully signed in!
+              Successfully signed in! Redirecting...
             </AlertDescription>
           </Alert>
         )}
@@ -124,8 +141,4 @@ export default function SignInForm() {
     </motion.div>
   )
 }
-// Remove this code from outside the component
-// if (success) {
-//   router.push('/dashboard');
-// }
 
