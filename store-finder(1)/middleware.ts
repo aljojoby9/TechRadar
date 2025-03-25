@@ -16,7 +16,16 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/account')
   ) {
     // updateSession will check if the user is authenticated and verify correct role access
-    return await updateSession(request)
+    const response = await updateSession(request)
+    
+    // If the user is not authenticated, redirect to sign in
+    if (!response.headers.get('x-user-id')) {
+      const redirectUrl = new URL('/auth/sign-in', request.url)
+      redirectUrl.searchParams.set('redirectedFrom', pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+    
+    return response
   }
   
   // Allow public access to all other routes

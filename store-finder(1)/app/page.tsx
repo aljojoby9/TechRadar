@@ -13,20 +13,33 @@ export default async function Home() {
   // Safely fetch user data with error handling
   let user = null;
   try {
-    const { data, error } = await supabase.auth.getUser();
-    if (!error && data && data.user) {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error("Session error:", error);
+      return <HomeClient user={null} />;
+    }
+
+    if (session?.user) {
+      // Check user role
+      const userRole = session.user.user_metadata?.role || session.user.user_metadata?.user_type;
+      if (userRole === 'store_owner') {
+        redirect('/dashboard/store_owner');
+      }
+      
       // Format the user data to match the expected interface in HomeClient
       user = {
-        id: data.user.id,
-        email: data.user.email || '',
-        app_metadata: data.user.app_metadata || {},
-        user_metadata: data.user.user_metadata || {},
-        aud: data.user.aud || '',
-        created_at: data.user.created_at || '',
+        id: session.user.id,
+        email: session.user.email || '',
+        app_metadata: session.user.app_metadata || {},
+        user_metadata: session.user.user_metadata || {},
+        aud: session.user.aud || '',
+        created_at: session.user.created_at || '',
       };
     }
-  } catch (error) {
-    console.error("Error fetching user:", error);
+  } catch (error: any) {
+    console.error("Error in Home page:", error?.message || error);
+    return <HomeClient user={null} />;
   }
 
   // Get user role
@@ -42,7 +55,7 @@ export default async function Home() {
             {/* Show dashboard link for store owners */}
             {isStoreOwner && (
               <Link
-                href="/dashboard"
+                href="/dashboard/store_owner"
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-md"
               >
                 Store Dashboard
@@ -52,7 +65,7 @@ export default async function Home() {
             {/* Show profile/user dashboard link for regular users */}
             {isRegularUser && (
               <Link
-                href="/profile"
+                href="/dashboard/user"
                 className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 transform hover:scale-105 shadow-md"
               >
                 My Dashboard

@@ -14,7 +14,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_IN') {
         router.refresh()
-        router.push('/')
+        // Redirect to the role-specific dashboard page
+        router.push('/dashboard/stores')
       }
       if (event === 'SIGNED_OUT') {
         router.refresh()
@@ -28,4 +29,4 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }, [router, supabase])
 
   return <>{children}</>
-} 
+}

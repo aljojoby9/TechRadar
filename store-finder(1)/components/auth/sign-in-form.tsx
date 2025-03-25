@@ -11,6 +11,12 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useRouter } from 'next/navigation'
+import { 
+  validateEmail,
+  getEmailErrorMessage,
+  validatePassword,
+  getPasswordErrorMessage
+} from "@/lib/validation"
 
 export default function SignInForm() {
   const [email, setEmail] = useState("")
@@ -18,19 +24,68 @@ export default function SignInForm() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string
+    password?: string
+  }>({})
   const supabase = createClient()
   const router = useRouter()
 
   // Check authentication status when component mounts
   useEffect(() => {
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession()
-      if (data?.session) {
-        router.push('/dashboard')
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error("Session check error:", error)
+          return
+        }
+        if (session?.user) {
+          const userRole = session.user.user_metadata?.role || session.user.user_metadata?.user_type || 'user'
+          router.push(`/dashboard/${userRole}`)
+        }
+      } catch (err) {
+        console.error("Auth check error:", err)
       }
     }
     checkAuth()
   }, [router, supabase.auth])
+
+  const validateForm = () => {
+    const errors: typeof fieldErrors = {}
+    let isValid = true
+
+    // Validate email
+    const emailError = getEmailErrorMessage(email)
+    if (emailError) {
+      errors.email = emailError
+      isValid = false
+    }
+
+    // Validate password
+    const passwordError = getPasswordErrorMessage(password)
+    if (passwordError) {
+      errors.password = passwordError
+      isValid = false
+    }
+
+    setFieldErrors(errors)
+    return isValid
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value
+    setEmail(newEmail)
+    const emailError = getEmailErrorMessage(newEmail)
+    setFieldErrors(prev => ({ ...prev, email: emailError || undefined }))
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value
+    setPassword(newPassword)
+    const passwordError = getPasswordErrorMessage(newPassword)
+    setFieldErrors(prev => ({ ...prev, password: passwordError || undefined }))
+  }
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,42 +93,41 @@ export default function SignInForm() {
     setSuccess(false)
     setLoading(true)
 
-    if (!email || !password) {
-      setError("Please enter both email and password")
+    if (!validateForm()) {
       setLoading(false)
       return
     }
 
     try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
-      })
-
-      if (signInError) {
-        if (signInError.message.includes('Invalid login credentials')) {
-          setError('Invalid email or password')
-        } else if (signInError.message.includes('Email not confirmed')) {
-          setError('Please confirm your email address before signing in')
-        } else {
-          setError(signInError.message)
-        }
-        setLoading(false)
-        return
+      });
+      
+      if (signInError) throw signInError;
+      
+      if (!data?.user) {
+        throw new Error("No user data returned after sign in");
       }
 
+      // Get user role from metadata
+      const userRole = data.user.user_metadata?.role || data.user.user_metadata?.user_type || 'user'
+      
+      // Sign in successful
       setSuccess(true)
       setEmail('')
       setPassword('')
+      setFieldErrors({})
       
-      // Set a short timeout to show the success message before redirecting
-      setTimeout(() => {
-        // Force a hard navigation to refresh auth state completely
-        window.location.href = '/dashboard'
-      }, 800)
+      // Wait for session to be established
+      await new Promise(resolve => setTimeout(resolve, 1000))
       
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.')
+      // Redirect based on user role
+      router.push(`/dashboard/${userRole}`)
+      
+    } catch (err: any) {
+      console.error("Authentication error:", err);
+      setError(err.message || 'Invalid email or password. Please try again.')
       setLoading(false)
     }
   }
@@ -92,12 +146,15 @@ export default function SignInForm() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={handleEmailChange}
             required
             placeholder="Enter your email"
             disabled={loading}
-            className="w-full"
+            className={`w-full ${fieldErrors.email ? 'border-red-500' : ''}`}
           />
+          {fieldErrors.email && (
+            <p className="text-sm text-red-500">{fieldErrors.email}</p>
+          )}
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Password</Label>
@@ -105,12 +162,15 @@ export default function SignInForm() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
             required
             placeholder="Enter your password"
             disabled={loading}
-            className="w-full"
+            className={`w-full ${fieldErrors.password ? 'border-red-500' : ''}`}
           />
+          {fieldErrors.password && (
+            <p className="text-sm text-red-500">{fieldErrors.password}</p>
+          )}
         </div>
 
         {error && (

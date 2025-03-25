@@ -21,10 +21,8 @@ interface StoreInventoryPageProps {
 }
 
 export default async function StoreInventoryPage({ params }: StoreInventoryPageProps) {
-  // Await params before accessing its properties
-  const resolvedParams = await params;
-  const storeId = resolvedParams.id;
-  
+  const storeId = params.id; // Directly access params
+
   const supabase = await createClient()
   
   const {

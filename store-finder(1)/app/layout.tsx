@@ -2,30 +2,31 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { Providers } from "./providers"
+import Navbar from "@/components/navbar"
+import Footer from "@/components/footer"
+import ChatbotWrapper from "@/components/chatbot/chatbot-wrapper"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Store Finder",
-  description: "Find stores near you",
+  description: "Find stores and check inventory",
 }
 
-// Add suppressHydrationWarning to the body element
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode
-}) {
-  return (
-    <html lang="en">
-      <body className="__className_d65c78" suppressHydrationWarning={true}>
-        {children}
+}>) {
+  return (    <html lang="en">
+      <body className={inter.className} suppressHydrationWarning={true}>
+        <div className="flex flex-col min-h-screen">
+          <Navbar />
+          <main className="flex-grow">{children}</main>
+          <Footer />
+          <ChatbotWrapper />
+        </div>
       </body>
     </html>
   )
 }
-
-
-
-import './globals.css'

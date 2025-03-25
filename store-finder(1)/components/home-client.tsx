@@ -39,14 +39,6 @@ interface HomeClientProps {
 export default function HomeClient({ user }: HomeClientProps) {
   return (
     <main className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
-      <nav className="bg-white/70 backdrop-blur-lg border-b">
-        <div className="container mx-auto px-4 py-3">
-          <div className="flex justify-between items-center">
-            <h1 className="text-xl font-semibold text-blue-600">Store Finder</h1>
-            <AuthButton user={user} />
-          </div>
-        </div>
-      </nav>
 
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

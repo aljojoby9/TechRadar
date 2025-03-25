@@ -14,8 +14,13 @@ async function getStores(): Promise<Store[]> {
   return fetchStores()
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ params }: { params: { role: string } }) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  
+  if (!user || user.user_metadata?.role !== params.role) {
+    redirect('/auth/sign-in')
+  }
 
   // Fetch store statistics
   const { data: stores } = await supabase

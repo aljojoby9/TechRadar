@@ -11,8 +11,13 @@ export default function AuthButton({ user }: { user: User | null }) {
   const supabase = createClient()
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.refresh() // Refresh the page to update the UI
+    try {
+      await supabase.auth.signOut()
+      // Force a hard refresh to clear any cached state
+      window.location.href = "/"
+    } catch (error) {
+      console.error("Error signing out:", error)
+    }
   }
 
   return user ? (

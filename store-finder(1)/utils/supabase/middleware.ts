@@ -51,8 +51,14 @@ export async function updateSession(request: NextRequest) {
           })
         },
       },
-    },
+    }
   )
+
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (session?.user) {
+    response.headers.set('x-user-id', session.user.id)
+  }
 
   const { data: { user } } = await supabase.auth.getUser()
   
